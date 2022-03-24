@@ -1,0 +1,40 @@
+startup quartus
+--> ssh -Y localhost /home/mark/intelFPGA_lite/20.1/quartus/bin/quartus --64bit
+if you don't need the quartus popups
+make sure your in corrdect directory or .qpf path must be added
+--> /home/mark/intelFPGA_lite/21.1/quartus/bin/quartus --64bit top.qpf
+
+after serial is first attached
+--> sudo chmod a+rw /dev/ttyUSB1
+
+to open up uart port to fpga i- also config uart baud etc.. (ctrl-A-D to exit)
+--> sudo picocom /dev/ttyUSB1 -r -b 115200 -c
+can also use, with no echo --> sudo screen /dev/ttyUSB1 115200 1n8
+
+
+to view uart output and save to file
+--> cp header.txt uartout.txt; sudo cat /dev/ttyUSB1 | tee -a uartout.txt
+
+
+to compile (from project directory) (is nios2 env set dont need path)
+--> cd ~/Desktop/fpgadrone
+--> ~/intelFPGA_lite/21.1/quartus/bin/quartus_sh --flow compile top
+--> ~/intelFPGA_lite/21.1/nios2eds/nios2_command_shell.sh
+--> quartus_sh --flow compile top 
+--> quartus_pgm -m jtag -o "p;/home/mark/Desktop/amax-dec5/output_files/top.sof"   
+cyc1000 has no internal prom, to program via indirect configuration file (.jic)
+1) make .cof file, <from main gui file> convert programming file (fill in and save) 
+2) execution of .cof makes .jic -- which is file to program on board eprom epcq16a
+--> quartus_cpf -c output_files/top.cof
+3) start ptoram device from main gui
+4) from programmer gui add .jic file, in file tab save project
+5) use .cdf to indirectly program module prom
+--> quartus_pgm output_files/top.cdf
+
+--> vim top.qsf 
+has all depenancies inc fpga device type,pin and type assignments,vhdl files
+
+get assigned pinlist, files, types      
+grep ' PIN_' top.qsf | sed 's/^.*PIN_//g'
+grep VHDL top.qsf | sed 's/^.*VHDL_FILE//g' 
+grep IO_STANDARD top.qsf | sed 's/^.*IO_STANDARD//g' 
